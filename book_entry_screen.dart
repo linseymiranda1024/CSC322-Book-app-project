@@ -12,14 +12,14 @@ class BookEntryScreen extends StatefulWidget {
 class _BookEntryScreenState extends State<BookEntryScreen> {
   final _titleController = TextEditingController();
   final _summaryController = TextEditingController();
-  final _commentsController = TextEditingController();
+  final _quotesController = TextEditingController();
   int _rating = 3;
   File? _selectedImage;
 
   Future<void> _pickImage() async {
     final imagePicker = ImagePicker();
     final pickedImage =
-        await imagePicker.pickImage(source: ImageSource.gallery, maxWidth: 600);
+        await imagePicker.pickImage(source: ImageSource.camera, maxWidth: 600);
     if (pickedImage == null) return;
     setState(() {
       _selectedImage = File(pickedImage.path);
@@ -35,7 +35,7 @@ class _BookEntryScreenState extends State<BookEntryScreen> {
   void _saveBook() {
     final title = _titleController.text.trim();
     final summary = _summaryController.text.trim();
-    final comments = _commentsController.text.trim();
+    //final comments = _commentsController.text.trim();
 
     if (title.isEmpty || summary.isEmpty || _selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -44,17 +44,15 @@ class _BookEntryScreenState extends State<BookEntryScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Book "$title" saved successfully!')),
-    );
+final newBook = {
+  'title': title,
+  'summary': summary,
+  'rating': _rating,
+  'image': _selectedImage?.path,
+};
 
-    _titleController.clear();
-    _summaryController.clear();
-    _commentsController.clear();
-    setState(() {
-      _rating = 3;
-      _selectedImage = null;
-    });
+Navigator.pop(context, newBook);
+
   }
 
   @override
@@ -62,8 +60,8 @@ class _BookEntryScreenState extends State<BookEntryScreen> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 240, 230, 210),
       appBar: AppBar(
-        title: const Text('Add a Book'),
-        backgroundColor: const Color.fromARGB(255, 120, 100, 70),
+        title: const Text('Add Book'),
+        backgroundColor: const Color.fromARGB(255, 100, 73, 31),
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -75,30 +73,32 @@ class _BookEntryScreenState extends State<BookEntryScreen> {
               controller: _titleController,
               decoration: const InputDecoration(labelText: 'Book Title'),
             ),
+            const SizedBox(height: 20),
             Center(
-              child: const SizedBox(height: 20)),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 200,
-                width: 100,
-                decoration: BoxDecoration(
-                  color: Colors.brown[100],
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.brown),
-                ),
-                child: _selectedImage == null
-                    ? const Center(
-                        child: Text('Insert book cover'),
-                      )
-                    : ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.file(
-                          _selectedImage!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
+              child: GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 250,
+                  width: 155,
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(86, 132, 113, 84),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.brown),
+                  ),
+                  child: _selectedImage == null
+                      ? const Center(
+                          child: Text('Insert book cover'),
+                        )
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            _selectedImage!,
+                            fit: BoxFit.cover,
+                            width: 155,
+                            height: 200,
+                          ),
                         ),
-                      ),
+                ),
               ),
             ),
 
@@ -127,7 +127,7 @@ class _BookEntryScreenState extends State<BookEntryScreen> {
                     onPressed: () => _setRating(i),
                     icon: Icon(
                       i <= _rating ? Icons.star : Icons.star_border,
-                      color: const Color.fromARGB(255, 120, 100, 70),
+                      color: const Color.fromARGB(255, 176, 143, 43),
                       size: 30,
                     ),
                   ),
@@ -137,10 +137,10 @@ class _BookEntryScreenState extends State<BookEntryScreen> {
             const SizedBox(height: 20),
 
             TextField(
-              controller: _commentsController,
+              controller: _quotesController,
               maxLines: 3,
               decoration: const InputDecoration(
-                labelText: 'Comments',
+                labelText: 'Favorite Quotes',
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(),
               ),
@@ -151,7 +151,7 @@ class _BookEntryScreenState extends State<BookEntryScreen> {
             ElevatedButton.icon(
               onPressed: _saveBook,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 120, 100, 70),
+                backgroundColor: const Color.fromARGB(255, 99, 76, 43),
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 40, vertical: 14),

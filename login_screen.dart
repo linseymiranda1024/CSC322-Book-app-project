@@ -1,6 +1,9 @@
+//import 'package:book_app/screens/book_entry_screen.dart';
+import 'package:book_app/screens/your_books.dart';
+//import 'package:book_app/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'book_entry_screen.dart';
+//import 'your_books.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const BookEntryScreen()),
+      MaterialPageRoute(builder: (context) => const YourBooksScreen()),
     );
   }
 
