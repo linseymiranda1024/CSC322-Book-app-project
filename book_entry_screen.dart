@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 
 class BookEntryScreen extends StatefulWidget {
   const BookEntryScreen({super.key});
@@ -20,7 +22,9 @@ class _BookEntryScreenState extends State<BookEntryScreen> {
     final imagePicker = ImagePicker();
     final pickedImage =
         await imagePicker.pickImage(source: ImageSource.camera, maxWidth: 600);
+
     if (pickedImage == null) return;
+
     setState(() {
       _selectedImage = File(pickedImage.path);
     });
@@ -32,27 +36,35 @@ class _BookEntryScreenState extends State<BookEntryScreen> {
     });
   }
 
-  void _saveBook() {
+  Future<void> _saveBook() async {
     final title = _titleController.text.trim();
     final summary = _summaryController.text.trim();
-    //final comments = _commentsController.text.trim();
 
-    if (title.isEmpty || summary.isEmpty || _selectedImage == null) {
+    if (title.isEmpty || summary.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required fields')),
+        const SnackBar(content: Text('Please complete all fields')),
       );
       return;
     }
 
-final newBook = {
-  'title': title,
-  'summary': summary,
-  'rating': _rating,
-  'image': _selectedImage?.path,
-};
+    final newBook = {
+      'title': title,
+      'summary': summary,
+      'rating': _rating,
+      'image': null, 
+      'quotes': _quotesController.text.trim(),
+    };
 
-Navigator.pop(context, newBook);
+    final url = Uri.parse(
+      'https://book-app-projec-default-rtdb.firebaseio.com/books.json',
+    );
 
+    await http.post(
+      url,
+      body: json.encode(newBook),
+    );
+
+    Navigator.pop(context, newBook);
   }
 
   @override
@@ -74,6 +86,8 @@ Navigator.pop(context, newBook);
               decoration: const InputDecoration(labelText: 'Book Title'),
             ),
             const SizedBox(height: 20),
+
+  
             Center(
               child: GestureDetector(
                 onTap: _pickImage,
@@ -86,9 +100,7 @@ Navigator.pop(context, newBook);
                     border: Border.all(color: Colors.brown),
                   ),
                   child: _selectedImage == null
-                      ? const Center(
-                          child: Text('Insert book cover'),
-                        )
+                      ? const Center(child: Text('Insert book cover'))
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.file(
@@ -103,12 +115,12 @@ Navigator.pop(context, newBook);
             ),
 
             const SizedBox(height: 20),
+
             TextField(
               controller: _summaryController,
               maxLines: 4,
               decoration: const InputDecoration(
                 labelText: 'Summary',
-                alignLabelWithHint: true,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -121,14 +133,12 @@ Navigator.pop(context, newBook);
                   'Rating:',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(width: 8),
                 for (int i = 1; i <= 5; i++)
                   IconButton(
                     onPressed: () => _setRating(i),
                     icon: Icon(
                       i <= _rating ? Icons.star : Icons.star_border,
                       color: const Color.fromARGB(255, 176, 143, 43),
-                      size: 30,
                     ),
                   ),
               ],
@@ -141,7 +151,6 @@ Navigator.pop(context, newBook);
               maxLines: 3,
               decoration: const InputDecoration(
                 labelText: 'Favorite Quotes',
-                alignLabelWithHint: true,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -150,12 +159,6 @@ Navigator.pop(context, newBook);
 
             ElevatedButton.icon(
               onPressed: _saveBook,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 99, 76, 43),
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-              ),
               icon: const Icon(Icons.save),
               label: const Text('Save Book'),
             ),

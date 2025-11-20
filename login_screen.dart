@@ -1,9 +1,8 @@
-//import 'package:book_app/screens/book_entry_screen.dart';
-import 'package:book_app/screens/your_books.dart';
-//import 'package:book_app/screens/main_screen.dart';
+import 'package:book_app/screens/Navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-//import 'your_books.dart';
+import 'forgot_password_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,13 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const YourBooksScreen()),
-    );
-  }
-
-  void _forgotPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password reset link sent (mock action)')),
+      MaterialPageRoute(builder: (context) => const MainNavigation()),
     );
   }
 
@@ -90,18 +83,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: const Text('Log In'),
                 ),
+                
                 const SizedBox(height: 10),
-                TextButton(
-                  onPressed: _forgotPassword,
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 120, 100, 70),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
+              TextButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ForgotPasswordScreen(),
+      ),
+    );
+  },
+  child: const Text(
+    'Forgot Password?',
+    style: TextStyle(
+      color: Color.fromARGB(255, 120, 100, 70),
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+),
+
               ],
             ),
           ),
