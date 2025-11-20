@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:book_app/screens/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -46,11 +47,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     backgroundColor: Colors.white,
                     child: CircleAvatar(
                       radius: 55,
-                      backgroundColor: Colors.grey[300],
+                      backgroundColor: const Color.fromARGB(255, 127, 176, 143),
                       child: Icon(
                         Icons.person,
                         size: 60,
-                        color: Colors.grey[600],
+                        color: const Color.fromARGB(255, 41, 66, 49),
                       ),
                     ),
                   ),
@@ -266,9 +267,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             TextButton(
               onPressed: () {
-                // Perform logout
-                Navigator.pop(context);
-                // Add your logout logic here
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
               },
               child: const Text(
                 'Logout',
