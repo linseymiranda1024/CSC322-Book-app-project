@@ -1,4 +1,7 @@
+import 'package:book_app/screens/login_screen.dart';
+import 'package:book_app/screens/your_books.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -8,49 +11,67 @@ class CreateAccountScreen extends StatefulWidget {
 }
 
 class _CreateAccountScreenState extends State<CreateAccountScreen> {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   void _createAccount() {
-    // Simulate account creation
-    Navigator.pushNamed(context, '/your_books');
+    if (_usernameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your username, email and password!')),
+      );
+      return;
+    }
+    
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const YourBooksScreen()),
+    );
+  }
+
+  void _login() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color.fromARGB(255, 240, 230, 210),
       appBar: AppBar(
-        title: const Text('Create Account'),
-        backgroundColor: Colors.blueAccent,
+        title: Text(
+          'Create Account',
+          style: GoogleFonts.cinzelDecorative(
+            color: Colors.white
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 120, 100, 70),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
             const SizedBox(height: 20),
-
             TextField(
-              controller: usernameController,
+              controller: _usernameController,
               decoration: const InputDecoration(
                 labelText: 'Username',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
-
             TextField(
-              controller: emailController,
+              controller: _emailController,
               decoration: const InputDecoration(
                 labelText: 'Email',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
-
             TextField(
-              controller: passwordController,
+              controller: _passwordController,
               obscureText: true,
               decoration: const InputDecoration(
                 labelText: 'Password',
@@ -58,14 +79,23 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
             ElevatedButton(
               onPressed: _createAccount,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Colors.blueAccent,
+                backgroundColor: const Color.fromARGB(255, 120, 100, 70),
+                foregroundColor: Colors.white,
               ),
               child: const Text('Create Account'),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _login,
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                backgroundColor: const Color.fromARGB(255, 193, 173, 143),
+              ),
+              child: const Text('Back to Login'),
             ),
           ],
         ),
