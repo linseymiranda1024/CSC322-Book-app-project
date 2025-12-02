@@ -1,9 +1,9 @@
-//import 'package:book_app/screens/book_entry_screen.dart';
-import 'package:book_app/screens/your_books.dart';
-//import 'package:book_app/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-//import 'your_books.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'forgot_password_screen.dart';
+import 'create_account.dart';
+import 'Navigation.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
+  void _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your email and password')),
@@ -24,15 +24,27 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const YourBooksScreen()),
-    );
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainNavigation()),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Login failed')),
+      );
+    }
   }
 
-  void _forgotPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password reset link sent (mock action)')),
+  void _createAccount() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
     );
   }
 
@@ -54,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Book App',
+                  'Leaf & Letter',
                   style: GoogleFonts.cinzelDecorative(
                     color: const Color.fromARGB(255, 120, 100, 70),
                     fontSize: 36,
@@ -67,7 +79,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Email',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 15),
                 TextField(
@@ -77,7 +88,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Password',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 30),
                 ElevatedButton(
@@ -85,20 +95,36 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 120, 100, 70),
                     foregroundColor: Colors.white,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 12),
                   ),
                   child: const Text('Log In'),
                 ),
                 const SizedBox(height: 10),
                 TextButton(
-                  onPressed: _forgotPassword,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ForgotPasswordScreen(),
+                      ),
+                    );
+                  },
                   child: const Text(
                     'Forgot Password?',
                     style: TextStyle(
                       color: Color.fromARGB(255, 120, 100, 70),
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _createAccount,
+                  child: const Text(
+                    'Create Account',
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 120, 100, 70),
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),

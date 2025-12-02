@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:book_app/screens/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -8,174 +10,90 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Sample user data - replace with actual user data from your state management
-  String userName = 'Book Lover';
-  String userEmail = 'booklover@example.com';
+  late String userName;
+  late String userEmail;
+  bool darkMode = false;
+  String favoriteGenre = 'Fantasy';
+
+  // Example reading stats
   int totalBooks = 42;
   int booksRead = 28;
   int currentlyReading = 3;
-  String favoriteGenre = 'Fantasy';
+
+  final _displayNameController = TextEditingController();
+  final _genreController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Profile Header
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  // Profile Picture
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Colors.white,
-                    child: CircleAvatar(
-                      radius: 55,
-                      backgroundColor: Colors.grey[300],
-                      child: Icon(
-                        Icons.person,
-                        size: 60,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  // User Name
-                  Text(
-                    userName,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  // User Email
-                  Text(
-                    userEmail,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                ],
-              ),
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    userEmail = user?.email ?? 'No Email';
+    userName = user?.displayName ?? userEmail.split('@')[0];
+
+    _displayNameController.text = userName;
+    _genreController.text = favoriteGenre;
+  }
+
+  @override
+  void dispose() {
+    _displayNameController.dispose();
+    _genreController.dispose();
+    super.dispose();
+  }
+
+  void _updateDisplayName() async {
+    final newName = _displayNameController.text.trim();
+    if (newName.isEmpty) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.updateDisplayName(newName);
+      await user.reload();
+      setState(() {
+        userName = newName;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Display name updated!')),
+      );
+    }
+  }
+
+  void _updateFavoriteGenre() {
+    setState(() {
+      favoriteGenre = _genreController.text.trim().isEmpty
+          ? favoriteGenre
+          : _genreController.text.trim();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Favorite genre updated!')),
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
             ),
-
-            const SizedBox(height: 30),
-
-            // Reading Statistics
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Reading Statistics',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildStatCard('Total Books', totalBooks.toString(), Icons.library_books),
-                      _buildStatCard('Books Read', booksRead.toString(), Icons.check_circle),
-                      _buildStatCard('Reading', currentlyReading.toString(), Icons.menu_book),
-                    ],
-                  ),
-                ],
-              ),
+            TextButton(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              },
+              child: const Text('Logout', style: TextStyle(color: Colors.red)),
             ),
-
-            const SizedBox(height: 30),
-
-            // Profile Options
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  _buildProfileOption(
-                    icon: Icons.person_outline,
-                    title: 'Edit Profile',
-                    onTap: () {
-                      // Navigate to edit profile screen
-                    },
-                  ),
-                  _buildProfileOption(
-                    icon: Icons.favorite_outline,
-                    title: 'Favorite Genre',
-                    subtitle: favoriteGenre,
-                    onTap: () {
-                      // Navigate to genre selection
-                    },
-                  ),
-                  _buildProfileOption(
-                    icon: Icons.notifications_outlined,
-                    title: 'Notifications',
-                    onTap: () {
-                      // Navigate to notifications settings
-                    },
-                  ),
-                  _buildProfileOption(
-                    icon: Icons.dark_mode_outlined,
-                    title: 'Dark Mode',
-                    trailing: Switch(
-                      value: false,
-                      onChanged: (value) {
-                        // Toggle dark mode
-                      },
-                    ),
-                  ),
-                  _buildProfileOption(
-                    icon: Icons.info_outline,
-                    title: 'About',
-                    onTap: () {
-                      // Navigate to about screen
-                    },
-                  ),
-                  _buildProfileOption(
-                    icon: Icons.logout,
-                    title: 'Logout',
-                    textColor: Colors.red,
-                    onTap: () {
-                      _showLogoutDialog(context);
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -201,19 +119,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 10),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 5),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -231,53 +143,180 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: Icon(icon, color: textColor ?? Theme.of(context).primaryColor),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: textColor,
-          ),
-        ),
-        subtitle: subtitle != null
-            ? Text(subtitle, style: TextStyle(color: Colors.grey[600]))
-            : null,
+        title: Text(title,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: textColor,
+            )),
+        subtitle:
+            subtitle != null ? Text(subtitle, style: TextStyle(color: Colors.grey[600])) : null,
         trailing: trailing ?? const Icon(Icons.chevron_right),
         onTap: onTap,
       ),
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                // Perform logout
-                Navigator.pop(context);
-                // Add your logout logic here
-              },
-              child: const Text(
-                'Logout',
-                style: TextStyle(color: Colors.red),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Profile Header
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.white,
+                    child: CircleAvatar(
+                      radius: 55,
+                      backgroundColor: const Color.fromARGB(255, 127, 176, 143),
+                      child: const Icon(Icons.person, size: 60, color: Color.fromARGB(255, 41, 66, 49)),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Text(userName,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 5),
+                  Text(userEmail, style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.9))),
+                  const SizedBox(height: 30),
+                ],
               ),
             ),
+
+            const SizedBox(height: 30),
+
+            // Reading Statistics
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Reading Statistics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildStatCard('Total Books', totalBooks.toString(), Icons.library_books),
+                      _buildStatCard('Books Read', booksRead.toString(), Icons.check_circle),
+                      _buildStatCard('Reading', currentlyReading.toString(), Icons.menu_book),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            // Profile Options
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 15),
+                  _buildProfileOption(
+                    icon: Icons.person_outline,
+                    title: 'Edit Profile',
+                    subtitle: userName,
+                    onTap: () {
+                      _displayNameController.text = userName;
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Edit Display Name'),
+                          content: TextField(controller: _displayNameController),
+                          actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                            ElevatedButton(
+                                onPressed: () {
+                                  _updateDisplayName();
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Save')),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  _buildProfileOption(
+                    icon: Icons.favorite_outline,
+                    title: 'Favorite Genre',
+                    subtitle: favoriteGenre,
+                    onTap: () {
+                      _genreController.text = favoriteGenre;
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Edit Favorite Genre'),
+                          content: TextField(controller: _genreController),
+                          actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                            ElevatedButton(
+                                onPressed: () {
+                                  _updateFavoriteGenre();
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Save')),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  // _buildProfileOption(
+                  //   icon: Icons.notifications_outlined,
+                  //   title: 'Notifications',
+                  //   onTap: () {},
+                  // ),
+                  _buildProfileOption(
+                    icon: Icons.dark_mode_outlined,
+                    title: 'Dark Mode',
+                    trailing: Switch(
+                      value: darkMode,
+                      onChanged: (value) {
+                        setState(() => darkMode = value);
+                      },
+                    ),
+                  ),
+                  // _buildProfileOption(
+                  //   icon: Icons.info_outline,
+                  //   title: 'About',
+                  //   onTap: () {},
+                  // ),
+                  _buildProfileOption(
+                    icon: Icons.logout,
+                    title: 'Logout',
+                    textColor: Colors.red,
+                    onTap: _showLogoutDialog,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }
